@@ -23,13 +23,14 @@ public class TestLink {
     @BeforeClass
     public static void generalSetup(){
         WebDriverManager.chromedriver().setup();
+
         driver = new ChromeDriver();
         driver.manage().timeouts().implicitlyWait(TIMEOUT, TimeUnit.SECONDS);
         driver.manage().window().maximize();
-
         driver.navigate().to(HOST);
+
         login(username, password);
-        openSection("Test Specification");
+        openNavigationSection("Test Specification");
         openTestSuiteCreationForm();
     }
 
@@ -41,7 +42,7 @@ public class TestLink {
 
     @After
     public void returnToStartingPoint(){
-        selectTestSpecificationOnTitleBar();
+        selectTestSpecificationSectionFromTitleBar();
         openTestSuiteCreationForm();
     }
 
@@ -72,7 +73,7 @@ public class TestLink {
         driver.findElement(By.cssSelector("input[type='Submit']")).click();
     }
 
-    private static void openSection(String sectionName){
+    private static void openNavigationSection(String sectionName){
         switchContextToMainFrame();
 
         String sectionXPath = String.format("//a[contains(text(), '%s')]", sectionName);
@@ -80,21 +81,11 @@ public class TestLink {
         driver.switchTo().defaultContent();
     }
 
-    private static void selectTestSpecificationOnTitleBar() {
+    private static void selectTestSpecificationSectionFromTitleBar() {
         switchContextToTitleBar();
 
         driver.findElement(By.cssSelector("img[title='Test Specification']")).click();
         driver.switchTo().defaultContent();
-    }
-
-    private static void switchContextToMainFrame() {
-        WebElement mainFrame = driver.findElement(By.cssSelector("frame[name='mainframe']"));
-        driver.switchTo().frame(mainFrame);
-    }
-
-    private static void switchContextToTitleBar() {
-        WebElement titleBar = driver.findElement(By.cssSelector("frame[name='titlebar']"));
-        driver.switchTo().frame(titleBar);
     }
 
     private static void openTestSuiteCreationForm(){
@@ -106,13 +97,6 @@ public class TestLink {
     private static void showAvailableActions() {
         switchContextToWorkFrame();
         driver.findElement(By.cssSelector("img[title='Actions']")).click();
-    }
-
-    private static void switchContextToWorkFrame() {
-        switchContextToMainFrame();
-
-        WebElement workFrame =  driver.findElement(By.cssSelector("frame[name='workframe']"));
-        driver.switchTo().frame(workFrame);
     }
 
     private static void createTestSuite(){
@@ -134,13 +118,6 @@ public class TestLink {
         driver.switchTo().defaultContent();
     }
 
-    private static void switchContextToTreeFrame() {
-        switchContextToMainFrame();
-
-        WebElement treeFrame =  driver.findElement(By.cssSelector("frame[name='treeframe']"));
-        driver.switchTo().frame(treeFrame);
-    }
-
     private static void openTestCaseCreationForm(){
         showAvailableActions();
 
@@ -159,12 +136,6 @@ public class TestLink {
         driver.switchTo().defaultContent();
     }
 
-    private static String getTimeStamp(){
-        SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyyHHmmss");
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        return sdf.format(timestamp);
-    }
-
     private static int getNumberOfTestCasesWithinTestSuite(String tsName){
         switchContextToTreeFrame();
 
@@ -178,5 +149,35 @@ public class TestLink {
         int numberOfTestCasesWithinTestSuite = driver.findElements(By.xpath(listOfTestCasesXPath)).size();
         driver.switchTo().defaultContent();
         return numberOfTestCasesWithinTestSuite;
+    }
+
+    private static String getTimeStamp(){
+        SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyyHHmmss");
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        return sdf.format(timestamp);
+    }
+
+    private static void switchContextToMainFrame() {
+        WebElement mainFrame = driver.findElement(By.cssSelector("frame[name='mainframe']"));
+        driver.switchTo().frame(mainFrame);
+    }
+
+    private static void switchContextToTitleBar() {
+        WebElement titleBar = driver.findElement(By.cssSelector("frame[name='titlebar']"));
+        driver.switchTo().frame(titleBar);
+    }
+
+    private static void switchContextToWorkFrame() {
+        switchContextToMainFrame();
+
+        WebElement workFrame =  driver.findElement(By.cssSelector("frame[name='workframe']"));
+        driver.switchTo().frame(workFrame);
+    }
+
+    private static void switchContextToTreeFrame() {
+        switchContextToMainFrame();
+
+        WebElement treeFrame =  driver.findElement(By.cssSelector("frame[name='treeframe']"));
+        driver.switchTo().frame(treeFrame);
     }
 }
