@@ -1,6 +1,4 @@
 import io.github.bonigarcia.wdm.WebDriverManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -17,12 +15,13 @@ public class TestLink {
     private static String password = "bitnami";
     private static final String HOST = "http://localhost";
     private static String testSuiteName = "";
+    private static String currentTestCaseName = "";
+
     private static WebDriver driver;
     private static final long TIMEOUT = 3;
-    private static final Logger logger = LogManager.getLogger(TestLink.class);
 
     @BeforeClass
-    public static void setupGeneral(){
+    public static void generalSetup(){
         WebDriverManager.chromedriver().setup();
         driver = new ChromeDriver();
         driver.manage().timeouts().implicitlyWait(TIMEOUT, TimeUnit.SECONDS);
@@ -35,21 +34,15 @@ public class TestLink {
     }
 
     @Before
-    public void setupTest(){
+    public void testSetup(){
         createTestSuite();
         selectTestSuite(testSuiteName);
     }
 
     @After
-    public void returnToProject(){
-        selectTestSpecification();
+    public void returnToStartingPoint(){
+        selectTestSpecificationOnTitleBar();
         openTestSuiteCreationForm();
-    }
-
-    private static void selectTestSpecification() {
-        switchContextToTitleBar();
-        driver.findElement(By.cssSelector("img[title='Test Specification']")).click();
-        driver.switchTo().defaultContent();
     }
 
     @AfterClass
@@ -60,16 +53,17 @@ public class TestLink {
     }
 
     @Test
-    public void newlyCreatedTestSuiteDoesNotHaveTestCases(){
-        Assert.assertTrue(getNumberOfTestCasesWithinTestSuite(testSuiteName) == 0);
+    public void newlyCreatedTestSuiteDoesNotHaveAnyTestCases(){
+        int numberOfTestCasesInSuite = getNumberOfTestCasesWithinTestSuite(testSuiteName);
+        Assert.assertEquals(0, numberOfTestCasesInSuite);
     }
 
-
     @Test
-    public void createdTestCaseAppearsInTree(){
+    public void createdTestCaseAppearsInTreeAsATestSuiteChild(){
         openTestCaseCreationForm();
         createBasicTestCase();
-        Assert.assertTrue(getNumberOfTestCasesWithinTestSuite(testSuiteName) == 1);
+        int numberOfTestCasesInSuite = getNumberOfTestCasesWithinTestSuite(testSuiteName);
+        Assert.assertEquals(1, numberOfTestCasesInSuite);
     }
 
     private static void login(String username, String password) {
@@ -83,6 +77,13 @@ public class TestLink {
 
         String sectionXPath = String.format("//a[contains(text(), '%s')]", sectionName);
         driver.findElement(By.xpath(sectionXPath)).click();
+        driver.switchTo().defaultContent();
+    }
+
+    private static void selectTestSpecificationOnTitleBar() {
+        switchContextToTitleBar();
+
+        driver.findElement(By.cssSelector("img[title='Test Specification']")).click();
         driver.switchTo().defaultContent();
     }
 
@@ -152,7 +153,8 @@ public class TestLink {
 
         WebElement inputField = driver.findElement(By.cssSelector("#testcase_name"));
         inputField.click();
-        inputField.sendKeys("TestCase_" + getTimeStamp());
+        currentTestCaseName = "TestCase_" + getTimeStamp();
+        inputField.sendKeys(currentTestCaseName);
         driver.findElement(By.xpath("//div[@class='groupBtn']//input[@id='do_create_button']")).click();
         driver.switchTo().defaultContent();
     }
